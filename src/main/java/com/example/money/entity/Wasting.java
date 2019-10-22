@@ -4,10 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -20,7 +18,11 @@ public class Wasting {
     private Long id;
 
     @Column(name = "time_paying")
-    private Long timePaying;
+    private LocalDateTime timePaying;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private Person person;
 
     @Column(name = "value")
     private Long value;
@@ -28,8 +30,9 @@ public class Wasting {
     @Column(name = "description")
     private String description;
 
-    public Wasting(Long timePaying, Long value, String description) {
+    public Wasting(LocalDateTime timePaying, Person person, Long value, String description) {
         this.timePaying = timePaying;
+        this.person = person;
         this.value = value;
         this.description = description;
     }

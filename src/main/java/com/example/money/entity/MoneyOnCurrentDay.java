@@ -4,10 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -20,12 +18,16 @@ public class MoneyOnCurrentDay {
     private Long id;
 
     @Column(name = "date_of_month")
-    private Long currentDate;
+    private LocalDateTime currentDate;
 
     @Column(name = "value")
     private Long value;
 
-    public MoneyOnCurrentDay(Long currentDate, Long value) {
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private Person person;
+
+    public MoneyOnCurrentDay(LocalDateTime currentDate, Long value) {
         this.currentDate = currentDate;
         this.value = value;
     }

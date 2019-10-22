@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class MoneyDTO {
 
+    private String userName;
     private LocalDateTime timePaying;
     private Long value;
     private String description;

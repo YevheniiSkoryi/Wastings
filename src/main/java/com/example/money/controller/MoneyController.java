@@ -28,7 +28,7 @@ public class MoneyController {
     }
 
     @PostMapping("/money")
-    public Wasting addNewMoney(
+    public String addNewMoney(
             @RequestBody
             final MoneyDTO moneyDTO
     ) {
