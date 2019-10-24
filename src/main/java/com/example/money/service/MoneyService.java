@@ -2,8 +2,8 @@ package com.example.money.service;
 
 import com.example.money.config.ErrorException;
 import com.example.money.config.ErrorType;
-import com.example.money.dto.WastingDTO;
 import com.example.money.dto.MoneyPerPeriod;
+import com.example.money.dto.WastingDTO;
 import com.example.money.entity.Money;
 import com.example.money.entity.Person;
 import com.example.money.entity.Wasting;
@@ -11,7 +11,6 @@ import com.example.money.repository.MoneyRepository;
 import com.example.money.repository.UserRepository;
 import com.example.money.repository.WastingRepository;
 import lombok.AllArgsConstructor;
-import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,10 +29,10 @@ public class MoneyService {
         final LocalDateTime startDate = LocalDateTime.of(time.getYear(), time.getMonth(), 1, 0, 0);
 
         final Person person = userRepository.findById(userName)
-                .orElseThrow(() -> new RuntimeException("person not found"));
+                .orElseThrow(() -> new ErrorException("Person " + userName + " not found", ErrorType.PERSON_NOT_FOUND));
 
         final Money money = moneyRepository.findByCurrentDateAndPerson(startDate, person)
-                .orElseThrow(() -> new ErrorException("money is not found on " + startDate, ErrorType.PERSON_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("money is not found on " + startDate, ErrorType.MONEY_NOT_FOUND));
 
         final List<Wasting> wastings = wastingRepository.findAllByTimePayingIsBetween(startDate, time);
 
@@ -60,7 +59,8 @@ public class MoneyService {
     public String addWastingAndRecalculateMoney(final WastingDTO wastingDTO) {
 
         final Person person = userRepository.findById(wastingDTO.getUserName())
-                .orElseThrow(() -> new RuntimeException("Person not found"));
+                .orElseThrow(() -> new ErrorException(
+                        "Person " + wastingDTO.getUserName() + " not found", ErrorType.PERSON_NOT_FOUND));
 
         person.addWasting(wastingDTO);
 

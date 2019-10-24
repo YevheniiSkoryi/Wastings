@@ -1,9 +1,9 @@
 package com.example.money.controller;
 
 import com.example.money.dto.InputDateDTO;
+import com.example.money.dto.MoneyPerPeriod;
 import com.example.money.dto.PersonDTO;
 import com.example.money.dto.WastingDTO;
-import com.example.money.dto.MoneyPerPeriod;
 import com.example.money.service.MoneyService;
 import com.example.money.service.UserService;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ public class MoneyController {
     private final MoneyService moneyService;
     private final UserService userService;
 
-    @GetMapping("/finishedPerMonth")
+    @GetMapping("/amount")
     public MoneyPerPeriod getFinishedAmountPerMonth(
             @RequestBody InputDateDTO time
     ) {
@@ -36,7 +36,9 @@ public class MoneyController {
     public String addPerson(
             @RequestBody final PersonDTO personDTO
     ) {
-        return userService.createPerson(personDTO.getPersonName(),personDTO.getStartCapital());
+        return userService.createPerson(personDTO.getPersonName(), personDTO.getStartCapital());
     }
+
+
 
 }

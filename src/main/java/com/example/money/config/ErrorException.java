@@ -1,5 +1,10 @@
 package com.example.money.config;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
 public class ErrorException extends RuntimeException {
 
     private ErrorType error;
