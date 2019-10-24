@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MoneyDTO {
+public class WastingDTO {
 
     private String userName;
     private LocalDateTime timePaying;

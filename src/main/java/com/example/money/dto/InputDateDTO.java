@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class InputDate {
+public class InputDateDTO {
 
     private LocalDateTime time;
+    private String userName;
 }

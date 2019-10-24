@@ -1,10 +1,11 @@
 package com.example.money.controller;
 
-import com.example.money.dto.InputDate;
-import com.example.money.dto.MoneyDTO;
+import com.example.money.dto.InputDateDTO;
+import com.example.money.dto.PersonDTO;
+import com.example.money.dto.WastingDTO;
 import com.example.money.dto.MoneyPerPeriod;
-import com.example.money.entity.Wasting;
 import com.example.money.service.MoneyService;
+import com.example.money.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,30 +15,28 @@ import org.springframework.web.bind.annotation.*;
 public class MoneyController {
 
     private final MoneyService moneyService;
-
-    @GetMapping("/finished")
-    public String getFinishedAmount() {
-
-        return "";
-    }
+    private final UserService userService;
 
     @GetMapping("/finishedPerMonth")
-    public MoneyPerPeriod getFinishedAmountPerMonth(@RequestBody InputDate time) {
+    public MoneyPerPeriod getFinishedAmountPerMonth(
+            @RequestBody InputDateDTO time
+    ) {
 
-        return moneyService.getMoneyForPeriod(time.getTime());
+        return moneyService.getMoneyOnCurrentDay(time.getTime(), time.getUserName());
     }
 
     @PostMapping("/money")
-    public String addNewMoney(
-            @RequestBody
-            final MoneyDTO moneyDTO
+    public String addNewWasting(
+            @RequestBody final WastingDTO wastingDTO
     ) {
-        return moneyService.addMoney(moneyDTO);
+        return moneyService.addWastingAndRecalculateMoney(wastingDTO);
     }
 
-    @PostMapping("/calculate")
-    public String calculateMoneyOnMonth(@RequestBody final InputDate time){
-        return moneyService.calculateMoneyOnMonth(time.getTime());
+    @PostMapping("/person")
+    public String addPerson(
+            @RequestBody final PersonDTO personDTO
+    ) {
+        return userService.createPerson(personDTO.getPersonName(),personDTO.getStartCapital());
     }
 
 }

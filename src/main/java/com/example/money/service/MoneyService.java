@@ -1,13 +1,17 @@
 package com.example.money.service;
 
-import com.example.money.dto.MoneyDTO;
+import com.example.money.config.ErrorException;
+import com.example.money.config.ErrorType;
+import com.example.money.dto.WastingDTO;
 import com.example.money.dto.MoneyPerPeriod;
+import com.example.money.entity.Money;
 import com.example.money.entity.Person;
 import com.example.money.entity.Wasting;
-import com.example.money.repository.MoneyOnCurrentDayRepository;
+import com.example.money.repository.MoneyRepository;
 import com.example.money.repository.UserRepository;
 import com.example.money.repository.WastingRepository;
 import lombok.AllArgsConstructor;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,29 +24,28 @@ public class MoneyService {
 
     private final UserRepository userRepository;
     private final WastingRepository wastingRepository;
-    private final MoneyOnCurrentDayRepository moneyOnCurrentDayRepository;
+    private final MoneyRepository moneyRepository;
 
-    public MoneyPerPeriod getMoneyForPeriod(LocalDateTime time) {
-        LocalDateTime month = LocalDateTime.of(time.getYear(), time.getMonth(), 1, 0, 0);
+    public MoneyPerPeriod getMoneyOnCurrentDay(final LocalDateTime time, final String userName) {
+        final LocalDateTime startDate = LocalDateTime.of(time.getYear(), time.getMonth(), 1, 0, 0);
 
-        List<Wasting> wastings = wastingRepository.findAllByTimePayingIsBetween(month, time);
+        final Person person = userRepository.findById(userName)
+                .orElseThrow(() -> new RuntimeException("person not found"));
 
-//        MoneyOnCurrentDay currentMoney =
-//                moneyOnCurrentDayRepository.findByCurrentDate(
-//                        LocalDateTime
-//                                .of(time.getYear(), time.getMonth(), 1, 0, 0)
-//                                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-//                ).orElseThrow(() -> new RuntimeException("didn't find current Money"));
+        final Money money = moneyRepository.findByCurrentDateAndPerson(startDate, person)
+                .orElseThrow(() -> new ErrorException("money is not found on " + startDate, ErrorType.PERSON_NOT_FOUND));
 
-//        Long finishedMoney = currentMoney.getValue() + moneys.stream().map(Money::getValue).reduce((long) 0, Long::sum);
+        final List<Wasting> wastings = wastingRepository.findAllByTimePayingIsBetween(startDate, time);
 
+        final Long finalAmount = money.getValue() + wastings.stream().map(Wasting::getValue).reduce((long) 0, Long::sum);
 
         return new MoneyPerPeriod(
-//                finishedMoney,
-                0L,
+                money.getValue(),
+                startDate,
+                finalAmount,
                 wastings.stream()
                         .map(wasting ->
-                                new MoneyDTO(
+                                new WastingDTO(
                                         wasting.getPerson().getId(),
                                         wasting.getTimePaying(),
                                         wasting.getValue(),
@@ -54,54 +57,20 @@ public class MoneyService {
     }
 
 
-    public String addMoney(final MoneyDTO moneyDTO) {
+    public String addWastingAndRecalculateMoney(final WastingDTO wastingDTO) {
 
-        final Person person = userRepository.findById(moneyDTO.getUserName())
+        final Person person = userRepository.findById(wastingDTO.getUserName())
                 .orElseThrow(() -> new RuntimeException("Person not found"));
-        person.addWasting(moneyDTO);
+
+        person.addWasting(wastingDTO);
+
+        person.getMonies().stream()
+                .filter(money -> money.getCurrentDate().isAfter(wastingDTO.getTimePaying()))
+                .forEach(money -> money.setValue(money.getValue() + wastingDTO.getValue()));
+
         userRepository.save(person);
-        return moneyDTO.getUserName();
+        return wastingDTO.getUserName();
     }
 
-    public String calculateMoneyOnMonth(final LocalDateTime date) {
-//        final LocalDateTime beginMonth = LocalDateTime
-//                .of(date.getYear(), date.getMonth(), 1, 0, 0);
-//        final LocalDateTime finishMonth = LocalDateTime
-//                .of(date.getYear(), date.getMonth(), date.getMonth().maxLength(), 23, 59);
-//
-//        final List<Wasting> wastings = wastingRepository.findAllByTimePayingIsBetween(beginMonth, finishMonth);
-//
-//        final LocalDateTime lastDayOfPreviousMonth =
-//                date.minusMonths(1).withDayOfMonth(date.minusMonths(1).getMonth().maxLength());
-//        final Long previousMonth = lastDayOfPreviousMonth
-//                .atZone(ZoneId.systemDefault())
-//                .toInstant()
-//                .toEpochMilli();
-//        Long moneyOnLastDayPreviousMonth = moneyOnCurrentDayRepository.findByCurrentDate(previousMonth)
-//                .orElseThrow(() -> new RuntimeException("wasnt found money on " + lastDayOfPreviousMonth)
-//                )
-//                .getValue();
-//
-//        LocalDateTime startDay;
-//        LocalDateTime endDay;
-//        for (int i = 1; i <= date.getMonth().maxLength(); i++) {
-//            startDay = LocalDateTime.of(date.getYear(), date.getMonth(), i, 0, 0, 0);
-//            endDay = LocalDateTime.of(date.getYear(), date.getMonth(), i, 23, 59, 59);
-//            Long startDayLong = startDay
-//                    .atZone(ZoneId.systemDefault())
-//                    .toInstant()
-//                    .toEpochMilli();
-//            Long endDayLong = endDay
-//                    .atZone(ZoneId.systemDefault())
-//                    .toInstant()
-//                    .toEpochMilli();
-//
-//            moneyOnLastDayPreviousMonth -= wastings.stream()
-//                    .filter(wasting -> wasting.getTimePaying() < endDayLong && wasting.getTimePaying() > startDayLong)
-//                    .map(Wasting::getValue).reduce((long)0, Long::sum);
-//            moneyOnCurrentDayRepository.save(new MoneyOnCurrentDay(startDayLong, moneyOnLastDayPreviousMonth));
-//        }
-        return "success";
 
-    }
 }

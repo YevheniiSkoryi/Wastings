@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class MoneyOnCurrentDay {
+public class Money {
 
     @Id
     @GeneratedValue
@@ -27,8 +27,14 @@ public class MoneyOnCurrentDay {
     @JoinColumn(name = "user_id")
     private Person person;
 
-    public MoneyOnCurrentDay(LocalDateTime currentDate, Long value) {
+    public Money(LocalDateTime currentDate, Long value) {
         this.currentDate = currentDate;
         this.value = value;
+    }
+
+    public Money(LocalDateTime currentDate, Long value, Person person) {
+        this.currentDate = currentDate;
+        this.value = value;
+        this.person = person;
     }
 }
