@@ -1,5 +1,7 @@
 package com.example.money.service;
 
+import com.example.money.config.ErrorException;
+import com.example.money.config.ErrorType;
 import com.example.money.entity.Money;
 import com.example.money.entity.Person;
 import com.example.money.repository.UserRepository;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -17,6 +20,11 @@ public class UserService {
 
     public String createPerson(String personName, Long startCapital) {
 
+        Optional<Person> uniquePerson = userRepository.findById(personName);
+        if (uniquePerson.isPresent()) {
+            throw new ErrorException(ErrorType.PERON_ALREADY_EXIST, "Person " + personName + " already exist");
+        }
+
         final Person person = new Person(personName, new ArrayList<>(), new ArrayList<>());
         LocalDateTime now = LocalDateTime.of(
                 LocalDateTime.now().getYear(),
@@ -25,19 +33,8 @@ public class UserService {
                 0,
                 0
         );
-        for (int i = 0; i < 12; i++) {
-            final Money money = createMoney(
-                    now,
-                    startCapital
-            );
-            person.addMoney(money);
-            now = now.plusMonths(1);
-        }
+        person.addMoney(new Money(now, startCapital));
         userRepository.save(person);
         return personName;
-    }
-
-    private Money createMoney(LocalDateTime time, Long capital) {
-        return new Money(time, capital);
     }
 }
