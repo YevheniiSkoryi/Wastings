@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,68 +31,42 @@ public class MoneyService {
         final Person person = userRepository.findById(userName)
                 .orElseThrow(() -> new ErrorException("Person " + userName + " not found", ErrorType.PERSON_NOT_FOUND));
 
-        final LocalDateTime nextMonth =  time.plusMonths(2).withDayOfMonth(1);
-        System.out.println("NEXT MONTH: "+nextMonth);
-        if (time.isBefore(nextMonth)) {
-            System.out.println("PHASE 1 1");
-            final Money money = moneyRepository.findByCurrentDateAndPerson(startDate, person)
-                    .orElseGet(() -> calculateMoneyOnCurrentMonth(person, startDate));
-            System.out.println("PHASE 1 2");
-            final List<Wasting> wastings = wastingRepository.findAllByTimePayingIsBetweenAndPerson(startDate, time, person);
-            System.out.println("PHASE 1 3");
-            final Long finalAmount = money.getValue() + wastings.stream().map(Wasting::getValue).reduce((long) 0, Long::sum);
-            return new MoneyPerPeriod(
-                    money.getValue(),
-                    startDate,
-                    finalAmount,
-                    wastings.stream()
-                            .map(wasting ->
-                                    new WastingDTO(
-                                            wasting.getPerson().getId(),
-                                            wasting.getTimePaying(),
-                                            wasting.getValue(),
-                                            wasting.getDescription()
-                                    )
-                            ).collect(Collectors.toList()
-                    )
-            );
-        } else {
-            System.out.println("PHASE 2 1");
-            final Money money = moneyRepository.findFirstByPersonOrderByIdDesc(person)
-                    .orElseThrow(() -> new ErrorException("Money is not found", ErrorType.MONEY_NOT_FOUND));
-            System.out.println("PHASE 2 2");
-            final List<Wasting> wastings =
-                    wastingRepository.findAllByTimePayingIsBetweenAndPerson(money.getCurrentDate(), time, person);
+        System.out.println("PHASE 1 1");
+        final Money money = moneyRepository.findByCurrentDateAndPerson(startDate, person)
+                .orElseGet(() -> calculateMoneyOnCurrentMonth(person, startDate));
 
-            System.out.println("PHASE 2 3");
-            final Long finalAmount = money.getValue() + wastings.stream().map(Wasting::getValue).reduce((long) 0, Long::sum);
+        System.out.println("PHASE 1 2");
+        final List<Wasting> wastings = wastingRepository.findAllByTimePayingIsBetweenAndPerson(startDate, time, person);
 
-            return new MoneyPerPeriod(
-                    money.getValue(),
-                    startDate,
-                    finalAmount,
-                    wastings.stream()
-                            .map(wasting ->
-                                    new WastingDTO(
-                                            wasting.getPerson().getId(),
-                                            wasting.getTimePaying(),
-                                            wasting.getValue(),
-                                            wasting.getDescription()
-                                    )
-                            ).collect(Collectors.toList()
-                    )
-            );
-        }
+        System.out.println("PHASE 1 3");
+        final Long finalAmount = money.getValue() + wastings.stream().map(Wasting::getValue).reduce((long) 0, Long::sum);
+        return new MoneyPerPeriod(
+                money.getValue(),
+                startDate,
+                finalAmount,
+                wastings.stream()
+                        .map(wasting ->
+                                new WastingDTO(
+                                        wasting.getPerson().getId(),
+                                        wasting.getTimePaying(),
+                                        wasting.getValue(),
+                                        wasting.getDescription()
+                                )
+                        ).collect(Collectors.toList()
+                )
+        );
     }
 
 
     private Money calculateMoneyOnCurrentMonth(Person person, LocalDateTime startDate) {
         System.out.println("PHASE 1 1 1");
-        final Money money = moneyRepository.findByCurrentDateAndPerson(startDate.minusMonths(1), person)
-                .orElseThrow(() -> new ErrorException("money is not found on " + startDate, ErrorType.MONEY_NOT_FOUND));
+        final Money money = moneyRepository.findFirstByPersonOrderByIdDesc(person)
+                .orElseThrow(() -> new ErrorException("money is not found", ErrorType.MONEY_NOT_FOUND));
+
         System.out.println("PHASE 1 1 2");
         final List<Wasting> wastingInPreviousMonth =
-                wastingRepository.findAllByTimePayingIsBetweenAndPerson(startDate.minusMonths(1), startDate, person);
+                wastingRepository.findAllByTimePayingIsBetweenAndPerson(money.getCurrentDate(), startDate, person);
+
         System.out.println("PHASE 1 1 3");
         final Long finalAmount = money.getValue()
                 + wastingInPreviousMonth.stream().map(Wasting::getValue).reduce((long) 0, Long::sum);
