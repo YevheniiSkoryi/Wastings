@@ -60,7 +60,7 @@ public class MoneyService {
 
     private Money calculateMoneyOnCurrentMonth(Person person, LocalDateTime startDate) {
         System.out.println("PHASE 1 1 1");
-        final Money money = moneyRepository.findFirstByPersonOrderByIdDesc(person)
+        final Money money = moneyRepository.findFirstByPersonAndCurrentDateBeforeOrderByIdDesc(person, startDate)
                 .orElseThrow(() -> new ErrorException("money is not found", ErrorType.MONEY_NOT_FOUND));
 
         System.out.println("PHASE 1 1 2");

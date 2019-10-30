@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface MoneyRepository extends JpaRepository<Money, Long> {
 
     Optional<Money> findByCurrentDateAndPerson(LocalDateTime currentDay, Person person);
-    Optional<Money> findFirstByPersonOrderByIdDesc(Person person);
+    Optional<Money> findFirstByPersonAndCurrentDateBeforeOrderByIdDesc(Person person, LocalDateTime currentDay);
 
 }
