@@ -1,0 +1,25 @@
+version: '2'
+services:
+#  for application container
+  web:
+    image: wastings:1.0.0
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+#    for database docker container
+  db:
+    container_name: postgresContainer
+    image: postgres:9.5
+    volumes:
+      - postgresContainer:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=money
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - 5432:5432
+
+volumes:
+  postgresContainer: {}
