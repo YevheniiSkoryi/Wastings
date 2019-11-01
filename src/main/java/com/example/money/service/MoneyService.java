@@ -51,8 +51,8 @@ public class MoneyService {
                                         wasting.getTimePaying(),
                                         wasting.getValue(),
                                         wasting.getDescription()
-                                )
-                        ).collect(Collectors.toList()
+                                ))
+                        .collect(Collectors.toList()
                 )
         );
     }
