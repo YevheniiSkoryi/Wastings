@@ -7,11 +7,20 @@ import com.example.money.dto.WastingDTO;
 import com.example.money.service.MoneyService;
 import com.example.money.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("money")
+@CrossOrigin
+@RequestMapping("/money")
 public class MoneyController {
 
     private final MoneyService moneyService;
@@ -21,6 +30,7 @@ public class MoneyController {
     public MoneyPerPeriod getFinishedAmountPerMonth(
             @RequestBody InputDateDTO time
     ) {
+
 
         return moneyService.getMoneyOnCurrentDay(time.getTime(), time.getUserName());
     }
@@ -33,12 +43,25 @@ public class MoneyController {
     }
 
     @PostMapping("/person")
-    public String addPerson(
-            @RequestBody final PersonDTO personDTO
+    public ResponseEntity<?> addPerson(
+            @Valid @RequestBody final PersonDTO personDTO,
+            final BindingResult result
     ) {
-        return userService.createPerson(personDTO.getPersonName(), personDTO.getStartCapital());
+
+        if (result.hasErrors()) {
+            Map<String, String> errorMap = new HashMap<>();
+
+            for (FieldError error : result.getFieldErrors()) {
+                errorMap.put(error.getField(), error.getDefaultMessage());
+            }
+            return new ResponseEntity<Map<String, String>>(errorMap, HttpStatus.BAD_REQUEST);
+        } else {
+            return new ResponseEntity<String>(
+                    userService.createPerson(personDTO.getPersonName(), Long.parseLong(personDTO.getStartCapital())),
+                    HttpStatus.CREATED
+            );
+        }
+
+
     }
-
-
-
 }
