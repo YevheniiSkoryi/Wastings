@@ -2,6 +2,7 @@ package com.example.money.service;
 
 import com.example.money.config.ErrorException;
 import com.example.money.config.ErrorType;
+import com.example.money.dto.application.PersonData;
 import com.example.money.entity.Money;
 import com.example.money.entity.Person;
 import com.example.money.repository.UserRepository;
@@ -18,14 +19,14 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public String createPerson(String personName, Long startCapital) {
+    public String createPerson(PersonData data) {
 
-        Optional<Person> uniquePerson = userRepository.findById(personName);
+        Optional<Person> uniquePerson = userRepository.findById(data.getPersonName());
+
         if (uniquePerson.isPresent()) {
-            throw new ErrorException(ErrorType.PERON_ALREADY_EXIST, "Person " + personName + " already exist");
+            throw new ErrorException(ErrorType.PERSON_ALREADY_EXIST, "Person " + data.getPersonName() + " already exist");
         }
-
-        final Person person = new Person(personName, new ArrayList<>(), new ArrayList<>());
+        final Person person = new Person(data.getPersonName(), new ArrayList<>(), new ArrayList<>());
         LocalDateTime now = LocalDateTime.of(
                 LocalDateTime.now().getYear(),
                 LocalDateTime.now().getMonth(),
@@ -33,8 +34,16 @@ public class UserService {
                 0,
                 0
         );
-        person.addMoney(new Money(now, startCapital));
+        person.addMoney(new Money(now, data.getStartCapital()));
         userRepository.save(person);
-        return personName;
+        return data.getPersonName();
+    }
+
+    public String getPerson(String userName) {
+        Person person = userRepository.findById(userName)
+                .orElseThrow(() -> new ErrorException(ErrorType.PERSON_NOT_FOUND, "Person " + userName + " not found"));
+
+        return person.getId();
+
     }
 }

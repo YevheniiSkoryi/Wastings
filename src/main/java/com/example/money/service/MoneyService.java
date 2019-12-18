@@ -2,8 +2,8 @@ package com.example.money.service;
 
 import com.example.money.config.ErrorException;
 import com.example.money.config.ErrorType;
-import com.example.money.dto.MoneyPerPeriod;
-import com.example.money.dto.WastingDTO;
+import com.example.money.dto.application.MoneyPerPeriodData;
+import com.example.money.dto.application.WastingData;
 import com.example.money.entity.Money;
 import com.example.money.entity.Person;
 import com.example.money.entity.Wasting;
@@ -25,49 +25,48 @@ public class MoneyService {
     private final WastingRepository wastingRepository;
     private final MoneyRepository moneyRepository;
 
-    public MoneyPerPeriod getMoneyOnCurrentDay(final LocalDateTime time, final String userName) {
+    public MoneyPerPeriodData getMoneyOnCurrentDay(final LocalDateTime time, final String userName) {
         final LocalDateTime startDate = LocalDateTime.of(time.getYear(), time.getMonth(), 1, 0, 0);
 
         final Person person = userRepository.findById(userName)
                 .orElseThrow(() -> new ErrorException("Person " + userName + " not found", ErrorType.PERSON_NOT_FOUND));
 
-        System.out.println("PHASE 1 1");
         final Money money = moneyRepository.findByCurrentDateAndPerson(startDate, person)
                 .orElseGet(() -> calculateMoneyOnCurrentMonth(person, startDate));
 
-        System.out.println("PHASE 1 2");
+
         final List<Wasting> wastings = wastingRepository.findAllByTimePayingIsBetweenAndPerson(startDate, time, person);
 
-        System.out.println("PHASE 1 3");
+
         final Long finalAmount = money.getValue() + wastings.stream().map(Wasting::getValue).reduce((long) 0, Long::sum);
-        return new MoneyPerPeriod(
+        return new MoneyPerPeriodData(
                 money.getValue(),
                 startDate,
                 finalAmount,
                 wastings.stream()
                         .map(wasting ->
-                                new WastingDTO(
-                                        wasting.getPerson().getId(),
+                                new WastingData(
+                                        wasting.getId(),
                                         wasting.getTimePaying(),
                                         wasting.getValue(),
                                         wasting.getDescription()
-                                ))
-                        .collect(Collectors.toList()
-                )
+                                )
+                        )
+                        .collect(Collectors.toList())
         );
     }
 
 
     private Money calculateMoneyOnCurrentMonth(Person person, LocalDateTime startDate) {
-        System.out.println("PHASE 1 1 1");
+
         final Money money = moneyRepository.findFirstByPersonAndCurrentDateBeforeOrderByIdDesc(person, startDate)
                 .orElseThrow(() -> new ErrorException("money is not found", ErrorType.MONEY_NOT_FOUND));
 
-        System.out.println("PHASE 1 1 2");
+
         final List<Wasting> wastingInPreviousMonth =
                 wastingRepository.findAllByTimePayingIsBetweenAndPerson(money.getCurrentDate(), startDate, person);
 
-        System.out.println("PHASE 1 1 3");
+
         final Long finalAmount = money.getValue()
                 + wastingInPreviousMonth.stream().map(Wasting::getValue).reduce((long) 0, Long::sum);
 
@@ -77,21 +76,54 @@ public class MoneyService {
         return moneyOnCurrentMonth;
     }
 
-    public String addWastingAndRecalculateMoney(final WastingDTO wastingDTO) {
+    public String addWastingAndRecalculateMoney(final WastingData data, final String userName) {
 
-        final Person person = userRepository.findById(wastingDTO.getUserName())
+        final Person person = userRepository.findById(userName)
                 .orElseThrow(() -> new ErrorException(
-                        "Person " + wastingDTO.getUserName() + " not found", ErrorType.PERSON_NOT_FOUND));
-
-        person.addWasting(wastingDTO);
+                        "Person " + userName + " not found", ErrorType.PERSON_NOT_FOUND));
 
         person.getMonies().stream()
-                .filter(money -> money.getCurrentDate().isAfter(wastingDTO.getTimePaying()))
-                .forEach(money -> money.setValue(money.getValue() + wastingDTO.getValue()));
+                .filter(money -> money.getCurrentDate().isAfter(data.getTimePaying()))
+                .forEach(money -> money.setValue(money.getValue() + data.getValue()));
 
+        person.addWasting(data);
         userRepository.save(person);
-        return wastingDTO.getUserName();
+        return userName;
     }
 
 
+    public WastingData getWastingById(final String userName, final Long wastingId) {
+
+        if (!userRepository.findById(userName).isPresent()) {
+            throw new ErrorException("Person " + userName + " not found", ErrorType.PERSON_NOT_FOUND);
+        }
+
+        final Wasting wasting = wastingRepository.findById(wastingId)
+                .orElseThrow(() -> new ErrorException(
+                        "Wasting with id=" + wastingId + " not found",
+                        ErrorType.WASTING_NOT_FOUND)
+                );
+
+        return new WastingData(
+                wasting.getId(),
+                wasting.getTimePaying(),
+                wasting.getValue(),
+                wasting.getDescription()
+        );
+    }
+
+    public Long deleteWastingById(final String userName, final Long wastingId) {
+
+        if (!userRepository.findById(userName).isPresent()) {
+            throw new ErrorException("Person " + userName + " not found", ErrorType.PERSON_NOT_FOUND);
+        }
+
+        final Wasting wasting = wastingRepository.findById(wastingId)
+                .orElseThrow(() -> new ErrorException(
+                        "Wasting with id=" + wastingId + " not found",
+                        ErrorType.WASTING_NOT_FOUND)
+                );
+        wastingRepository.delete(wasting);
+        return wastingId;
+    }
 }
