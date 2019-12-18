@@ -3,9 +3,13 @@ package com.example.money.config;
 
 public enum ErrorType {
 
-    PERSON_NOT_FOUND("person not found", "1"),
-    MONEY_NOT_FOUND("money not found", "2"),
-    PERON_ALREADY_EXIST("person already exist","3");
+    PERSON_NOT_FOUND("personNotFound", "1"),
+    MONEY_NOT_FOUND("moneyNotFound", "2"),
+    PERSON_ALREADY_EXIST("personAlreadyExist", "3"),
+    DATE_PARSE("dateCanNotBeParsed", "4"),
+    LONG_PARSE("numberCanNotBeParsed", "5"),
+    WASTING_NOT_FOUND("wastingNotFound", "6");
+
 
     String message;
     String code;
@@ -14,5 +18,7 @@ public enum ErrorType {
         this.message = message;
         this.code = code;
     }
+
+
 
 }

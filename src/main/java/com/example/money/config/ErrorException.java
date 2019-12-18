@@ -14,6 +14,7 @@ public class ErrorException extends RuntimeException {
         super(message);
         this.error = error;
         this.message = message;
-
     }
+
+
 }
