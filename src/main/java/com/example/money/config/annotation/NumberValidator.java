@@ -7,10 +7,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = DoubleValidator.class)
+@Constraint(validatedBy = NumberValidatorImpl.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface DoubleParser {
+public @interface NumberValidator {
     String message() default "";
 
     Class<?>[] groups() default {};
