@@ -1,6 +1,6 @@
-package com.example.money.dto;
+package com.example.money.dto.infrastracture;
 
-import com.example.money.config.annotation.DoubleParser;
+import com.example.money.config.annotation.NumberValidator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +16,6 @@ public class PersonDTO {
     private String personName;
 
     @JsonProperty("startCapital")
-    @DoubleParser(message = "Capital must contain only numbers")
+    @NumberValidator
     private String startCapital;
 }
