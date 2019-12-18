@@ -1,6 +1,6 @@
 package com.example.money.entity;
 
-import com.example.money.dto.WastingDTO;
+import com.example.money.dto.application.WastingData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,10 +32,9 @@ public class Person {
     private List<Wasting> wastings;
 
 
-
-
-    public void addWasting(final WastingDTO money) {
+    public void addWasting(final WastingData money) {
         wastings.add(new Wasting(
+                money.getId(),
                 money.getTimePaying(),
                 this,
                 money.getValue(),
