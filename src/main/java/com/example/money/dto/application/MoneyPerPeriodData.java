@@ -1,4 +1,4 @@
-package com.example.money.dto;
+package com.example.money.dto.application;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,12 +10,19 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MoneyPerPeriod {
+public class MoneyPerPeriodData {
+
 
     private Long amountOnStartOfMonth;
+
+
     private LocalDateTime startDate;
+
+
     private Long amountOnCurrentDay;
-    private List<WastingDTO> wastingDTOS;
+
+
+    private List<WastingData> wastingDTOS;
 
 
 }
